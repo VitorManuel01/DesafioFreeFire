@@ -13,14 +13,13 @@ typedef struct
     int quantidade;
 } item;
 
-typedef struct itemEncadeado
+struct itemEncadeado
 {
     char nome[30];
     char tipo[20];
     int quantidade;
-    struct itemEncadeado* proximo;
+    struct itemEncadeado *proximo;
 };
-
 
 // Função para cadastrar itens no array de itens.
 // Parâmetros:
@@ -134,22 +133,22 @@ void bubbleSortItemsPorNome(item *itens, int qtdItens)
 {
     int i, j;
 
-    //definindo variável auxiliar para troca
+    // definindo variável auxiliar para troca
     item aux;
-    //j começa em 1 porque a cada iteração o maior elemento "sobe" para o final do array
+    // j começa em 1 porque a cada iteração o maior elemento "sobe" para o final do array
     for (j = 1; j < qtdItens; j++)
     {
-        //loop para comparar elementos adjacentes, ou seja itens[i] e itens[i+1], qtdItens-1 para evitar acessar fora do array
+        // loop para comparar elementos adjacentes, ou seja itens[i] e itens[i+1], qtdItens-1 para evitar acessar fora do array
         for (i = 0; i < qtdItens - 1; i++)
         {
-            //comparando os nomes dos itens adjacentes
+            // comparando os nomes dos itens adjacentes
             if (strcmp(itens[i].nome, itens[i + 1].nome) > 0)
             {
-                //auxiliar recebe o atual 
+                // auxiliar recebe o atual
                 aux = itens[i];
-                //atual recebe o próximo
+                // atual recebe o próximo
                 itens[i] = itens[i + 1];
-                //próximo recebe o atual do auxiliar
+                // próximo recebe o atual do auxiliar
                 itens[i + 1] = aux;
             }
         }
@@ -160,22 +159,27 @@ void bubbleSortItemsPorNome(item *itens, int qtdItens)
     }
 }
 
-void cadastrarItemEncadeado(struct itemEncadeado** inicio, char novoNome[30], char novoTipo[20], int novaQuantidade, int *contador){
+void cadastrarItemEncadeado(struct itemEncadeado **inicio, int *contador)
+{
+    char novoNome[30];
+    char novoTipo[20];
+    int novaQuantidade;
     while (*contador < MAX_ITENS)
     {
-        struct itemEncadeado* novo = (struct itemEncadeado*)malloc(sizeof(struct itemEncadeado));
-        if (!novo) {
+        struct itemEncadeado *novo = (struct itemEncadeado *)malloc(sizeof(struct itemEncadeado));
+        if (!novo)
+        {
             printf("Erro ao alocar memória para novo item.\n");
             return;
         }
         printf("digite o nome do item: ");
-        if(fgets(novoNome, sizeof(novoNome), stdin))
+        if (fgets(novoNome, sizeof(novoNome), stdin))
         {
             novoNome[strcspn(novoNome, "\r\n")] = '\0'; // remove newline
             strcpy(novo->nome, novoNome);
         }
         printf("digite o tipo do item: ");
-        if(fgets(novoTipo, sizeof(novoTipo), stdin))
+        if (fgets(novoTipo, sizeof(novoTipo), stdin))
         {
             novoTipo[strcspn(novoTipo, "\r\n")] = '\0'; // remove newline
             strcpy(novo->tipo, novoTipo);
@@ -187,13 +191,64 @@ void cadastrarItemEncadeado(struct itemEncadeado** inicio, char novoNome[30], ch
         *inicio = novo;
         (*contador)++;
         // Limpa o buffer após ler o inteiro
-        while (getchar() != '\n');
+        while (getchar() != '\n')
+            ;
     }
+}
+
+void listarItensEncadeados(struct itemEncadeado *inicio)
+{
+    struct itemEncadeado *atual = inicio;
+    printf("Lista de Itens Encadeados:\n");
+    while (atual != NULL)
+    {
+        printf("Nome: %s, Tipo: %s, Quantidade: %d\n", atual->nome, atual->tipo, atual->quantidade);
+        atual = atual->proximo;
+    }
+}
+
+void removerItemEncadeado(struct itemEncadeado *inicio)
+{
+    struct itemEncadeado *atual = inicio;
+    if (inicio != NULL)
+    {
+        inicio = inicio->proximo;
+        free(atual);
+        printf("Item removido com sucesso.\n");
+    }
+    else
+    {
+        printf("Lista vazia. Nenhum item para remover.\n");
+    }
+}
+
+void buscaPorNomeEncadeado(struct itemEncadeado *inicio, const char *nomeBuscar)
+{
+    struct itemEncadeado *atual = inicio;
+    while (atual != NULL)
+    {
+        if (strcmp(atual->nome, nomeBuscar) == 0)
+        {
+            printf("Item encontrado: Nome: %s, Tipo: %s, Quantidade: %d\n", atual->nome, atual->tipo, atual->quantidade);
+            return;
+        }
+        atual = atual->proximo;
+    }
+    printf("Item '%s' não encontrado.\n", nomeBuscar);
+}
+
+void escolherStructMenu()
+{
+    printf("Escolha a estrutura de dados:\n");
+    printf("1. Array Estático\n");
+    printf("2. Lista Encadeada\n");
+    printf("0. Sair\n");
+    printf("Escolha uma opção: ");
 }
 
 void menu()
 {
-    printf("Menu de Opções:\n");
+    printf("Menu de Opções - Lista Estática:\n");
     printf("1. Cadastrar Item\n");
     printf("2. Remover Item\n");
     printf("3. Listar Itens\n");
@@ -204,81 +259,176 @@ void menu()
     printf("Escolha uma opção: ");
 }
 
+void menuEncadeado()
+{
+    printf("Menu de Opções - Lista Encadeada:\n");
+    printf("1. Cadastrar Item\n");
+    printf("2. Remover Item\n");
+    printf("3. Listar Itens\n");
+    printf("4. Buscar Item\n");
+    printf("0. Sair\n");
+    printf("Escolha uma opção: ");
+}
+
 int main()
 {
     setlocale(LC_ALL, "Portuguese");
     system("cls || clear");
     item itens[MAX_ITENS];
+    struct itemEncadeado *inicio = NULL;
     int contador = 0;
+    int escolhaEstrutura;
     int opcao;
-   // int qtdItens = sizeof(itens) / sizeof(itens[0]);
-
+    int opcaoEncadeado;
+    // int qtdItens = sizeof(itens) / sizeof(itens[0]);
     do
     {
-        menu();
-        /* Ler a opção como linha para evitar deixar '\n' no stdin
-           (misturar scanf e fgets causa o problema observado). */
+        escolherStructMenu();
         char linhaOpcao[32];
         if (fgets(linhaOpcao, sizeof(linhaOpcao), stdin))
         {
-            if (sscanf(linhaOpcao, "%d", &opcao) != 1)
+            if (sscanf(linhaOpcao, "%d", &escolhaEstrutura) != 1)
             {
-                opcao = -1; /* entrada inválida */
+                escolhaEstrutura = -1; /* entrada inválida */
             }
         }
         else
         {
-            opcao = 0; /* EOF / erro de leitura: sair */
+            escolhaEstrutura = 0; /* EOF / erro de leitura: sair */
         }
-        switch (opcao)
+        switch (escolhaEstrutura)
         {
         case 0:
-            printf("Saindo do programa.\n");
+            /* code */
             break;
         case 1:
-            cadastrarItem(itens, &contador);
+            system("cls || clear");
+            do
+            {
+
+                menu();
+                /* Ler a opção como linha para evitar deixar '\n' no stdin
+                   (misturar scanf e fgets causa o problema observado). */
+                char linhaOpcao[32];
+                if (fgets(linhaOpcao, sizeof(linhaOpcao), stdin))
+                {
+                    if (sscanf(linhaOpcao, "%d", &opcao) != 1)
+                    {
+                        opcao = -1; /* entrada inválida */
+                    }
+                }
+                else
+                {
+                    opcao = 0; /* EOF / erro de leitura: sair */
+                }
+                switch (opcao)
+                {
+                case 0:
+                    printf("Saindo do programa.\n");
+                    system("cls || clear");
+                    break;
+                case 1:
+                    cadastrarItem(itens, &contador);
+                    break;
+                case 2:
+                {
+                    char nomeRemover[30];
+                    printf("Digite o nome do item a ser removido: ");
+                    if (fgets(nomeRemover, sizeof(nomeRemover), stdin))
+                    {
+                        nomeRemover[strcspn(nomeRemover, "\r\n")] = '\0'; // remove newline
+                    }
+                    removerItem(itens, &contador, nomeRemover);
+                    break;
+                }
+                case 3:
+                    listarItens(itens, contador);
+                    break;
+                case 4:
+                {
+                    char nomeBuscar[30];
+                    printf("Digite o nome do item a ser buscado: ");
+                    if (fgets(nomeBuscar, sizeof(nomeBuscar), stdin))
+                    {
+                        nomeBuscar[strcspn(nomeBuscar, "\r\n")] = '\0'; // remove newline
+                    }
+                    buscarItem(itens, contador, nomeBuscar);
+                    break;
+                }
+                case 5:
+                    bubbleSortItemsPorNome(itens, contador);
+                    break;
+                case 6:
+                {
+                    char nomeBuscar[30];
+                    printf("Digite o nome do item a ser buscado (Busca Binária): ");
+                    if (fgets(nomeBuscar, sizeof(nomeBuscar), stdin))
+                    {
+                        nomeBuscar[strcspn(nomeBuscar, "\r\n")] = '\0'; // remove newline
+                    }
+                    buscaBinariaItem(itens, contador, nomeBuscar);
+                    break;
+                }
+                default:
+                    break;
+                }
+            } while (opcao != 0);
             break;
         case 2:
-        {
-            char nomeRemover[30];
-            printf("Digite o nome do item a ser removido: ");
-            if (fgets(nomeRemover, sizeof(nomeRemover), stdin))
+            system("cls || clear");
+            do
             {
-                nomeRemover[strcspn(nomeRemover, "\r\n")] = '\0'; // remove newline
-            }
-            removerItem(itens, &contador, nomeRemover);
+
+                menuEncadeado();
+                /* Ler a opção como linha para evitar deixar '\n' no stdin
+                   (misturar scanf e fgets causa o problema observado). */
+                char linhaOpcaoEnc[32];
+                if (fgets(linhaOpcaoEnc, sizeof(linhaOpcaoEnc), stdin))
+                {
+                    if (sscanf(linhaOpcaoEnc, "%d", &opcaoEncadeado) != 1)
+                    {
+                        opcaoEncadeado = -1; /* entrada inválida */
+                    }
+                }
+                else
+                {
+                    opcaoEncadeado = 0; /* EOF / erro de leitura: sair */
+                }
+                switch (opcaoEncadeado)
+                {
+                case 0:
+                    printf("Saindo do programa.\n");
+                    system("cls || clear");
+                    break;
+                case 1:
+
+                    cadastrarItemEncadeado(&inicio, &contador);
+                    break;
+                case 2:
+                    removerItemEncadeado(&inicio);
+                    break;
+                case 3:
+                    listarItensEncadeados(inicio);
+                    break;
+                case 4:
+                {
+                    char nomeBuscar[30];
+                    printf("Digite o nome do item a ser buscado: ");
+                    if (fgets(nomeBuscar, sizeof(nomeBuscar), stdin))
+                    {
+                        nomeBuscar[strcspn(nomeBuscar, "\r\n")] = '\0'; // remove newline
+                    }
+                    buscaPorNomeEncadeado(inicio, nomeBuscar);
+                    break;
+                }
+                default:
+                    break;
+                }
+            } while (opcaoEncadeado != 0);
             break;
-        }
-        case 3:
-            listarItens(itens, contador);
-            break;
-        case 4:
-        {
-            char nomeBuscar[30];
-            printf("Digite o nome do item a ser buscado: ");
-            if (fgets(nomeBuscar, sizeof(nomeBuscar), stdin))
-            {
-                nomeBuscar[strcspn(nomeBuscar, "\r\n")] = '\0'; // remove newline
-            }
-            buscarItem(itens, contador, nomeBuscar);
-            break;
-        }
-        case 5:
-            bubbleSortItemsPorNome(itens, contador);
-            break;
-        case 6:
-        {
-            char nomeBuscar[30];
-            printf("Digite o nome do item a ser buscado (Busca Binária): ");
-            if (fgets(nomeBuscar, sizeof(nomeBuscar), stdin))
-            {
-                nomeBuscar[strcspn(nomeBuscar, "\r\n")] = '\0'; // remove newline
-            }
-            buscaBinariaItem(itens, contador, nomeBuscar);
-            break;
-        }
         default:
             break;
         }
-    } while (opcao != 0);
+
+    } while (escolhaEstrutura != 0);
 }
